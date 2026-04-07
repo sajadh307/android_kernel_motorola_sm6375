@@ -17,7 +17,7 @@ jobs:
     steps:
       - name: Checkout Kernel Source
         run: |
-          git clone --depth=1 https://github.com/Motorola-SM6375-Devs/android_kernel_motorola_sm6375.git ~/android_kernel_motorola_sm6375
+          git clone --depth=1 https://https://github.com/sajadh307/android_kernel_motorola_sm6375
           git clone --depth=1 https://github.com/tiann/KernelSU.git ~/kernel_su
 
       - name: Install Dependencies
