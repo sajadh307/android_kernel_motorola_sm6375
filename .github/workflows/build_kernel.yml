@@ -1,43 +1,31 @@
-name: Build KernelSU Kernel for Moto G45 (fogos)
+env:
+  ARCH: arm64
+  SUBARCH: arm64
+  DEFCONFIG: defconfig
 
-on:
-  push:
-    branches:
-      - main
-  workflow_dispatch:
+steps:
+  - name: Checkout kernel source
+    uses: actions/checkout@v4
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
+  - name: Install dependencies
+    run: |
+      sudo apt update
+      sudo apt install -y git bc bison flex libssl-dev make libc6-dev libncurses5-dev clang lld
 
-    env:
-      ARCH: arm64
-      SUBARCH: arm64
-      DEFCONFIG: fogos_defconfig  # change if needed
+  - name: Clone KernelSU
+    run: git clone https://github.com/tiann/KernelSU.git KernelSU
 
-    steps:
-      - name: Checkout kernel source
-        uses: actions/checkout@v4
+  - name: Enable KernelSU
+    run: sed -i 's/# CONFIG_KSU is not set/CONFIG_KSU=y/' arch/arm64/configs/defconfig
 
-      - name: Install dependencies
-        run: |
-          sudo apt update
-          sudo apt install -y git bc bison flex libssl-dev make libc6-dev libncurses5-dev clang lld
+  - name: Set up defconfig
+    run: make $defconfig
 
-      - name: Clone KernelSU
-        run: |
-          git clone https://github.com/tiann/KernelSU.git KernelSU
-          cd KernelSU
-          
+  - name: Build kernel
+    run: make -j$(nproc)
 
-      - name: Set up defconfig
-        run: make $defconfig
-
-      - name: Build kernel
-        run: make -j$(nproc)
-
-      - name: Upload kernel artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: Image.gz
-          path: arch/arm64/boot/Image.gz
+  - name: Upload kernel artifact
+    uses: actions/upload-artifact@v4
+    with:
+      name: Image.gz
+      path: arch/arm64/boot/Image.gz
