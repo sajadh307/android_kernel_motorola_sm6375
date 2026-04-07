@@ -28,7 +28,7 @@ jobs:
         run: |
           git clone https://github.com/tiann/KernelSU.git KernelSU
           cd KernelSU
-          bash setup.sh
+          
 
       - name: Set up defconfig
         run: make $DEFCONFIG
