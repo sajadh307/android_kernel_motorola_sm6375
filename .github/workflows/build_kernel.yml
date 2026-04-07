@@ -1,0 +1,43 @@
+name: Build KernelSU Kernel for Moto G45 (fogos)
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    env:
+      ARCH: arm64
+      SUBARCH: arm64
+      DEFCONFIG: fogos_defconfig  # change if needed
+
+    steps:
+      - name: Checkout kernel source
+        uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y git bc bison flex libssl-dev make libc6-dev libncurses5-dev clang lld
+
+      - name: Clone KernelSU
+        run: |
+          git clone https://github.com/tiann/KernelSU.git KernelSU
+          cd KernelSU
+          bash setup.sh
+
+      - name: Set up defconfig
+        run: make $DEFCONFIG
+
+      - name: Build kernel
+        run: make -j$(nproc)
+
+      - name: Upload kernel artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: Image.gz
+          path: arch/arm64/boot/Image.gz
