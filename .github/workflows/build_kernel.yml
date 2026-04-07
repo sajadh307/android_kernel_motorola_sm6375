@@ -15,41 +15,25 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout kernel source
       - name: Checkout kernel source
         uses: actions/checkout@v4
 
-      # 2. Install host dependencies
-      - name: Install dependencies
+      - name: Install dependencies + ARM64 compiler
         run: |
           sudo apt update
-          sudo apt install -y git bc bison flex libssl-dev make libc6-dev libncurses5-dev clang lld wget tar
+          sudo apt install -y git bc bison flex libssl-dev make libc6-dev libncurses5-dev clang lld gcc-aarch64-linux-gnu g++-aarch64-linux-gnu wget tar
 
-      # 3. Download and setup Linaro ARM64 toolchain (fixed URL)
-      - name: Install ARM64 toolchain
-        run: |
-          wget https://releases.linaro.org/components/toolchain/binaries/12.2-2023.04/aarch64-linux-gnu/gcc-linaro-12.2.1-2023.04-x86_64_aarch64-linux-gnu.tar.xz
-          tar -xf gcc-linaro-12.2.1-2023.04-x86_64_aarch64-linux-gnu.tar.xz
-          export PATH=$PWD/gcc-linaro-12.2.1-2023.04-x86_64_aarch64-linux-gnu/bin:$PATH
-          export CROSS_COMPILE=aarch64-linux-gnu-
-
-      # 4. Clone KernelSU
       - name: Clone KernelSU
-        run: |
-          git clone https://github.com/tiann/KernelSU.git KernelSU
+        run: git clone https://github.com/tiann/KernelSU.git KernelSU
 
-      # 5. Enable KernelSU and setup defconfig
       - name: Enable KernelSU and setup defconfig
         run: |
           sed -i 's/# CONFIG_KSU is not set/CONFIG_KSU=y/' arch/arm64/configs/defconfig
           make O=out defconfig CROSS_COMPILE=aarch64-linux-gnu-
 
-      # 6. Build the kernel
       - name: Build kernel
-        run: |
-          make -C . O=out -j$(nproc) CROSS_COMPILE=aarch64-linux-gnu-
+        run: make -C . O=out -j$(nproc) CROSS_COMPILE=aarch64-linux-gnu-
 
-      # 7. Upload compiled kernel artifact
       - name: Upload kernel artifact
         uses: actions/upload-artifact@v4
         with:
