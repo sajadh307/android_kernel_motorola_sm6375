@@ -15,40 +15,33 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout kernel source
       - name: Checkout kernel source
         uses: actions/checkout@v4
 
-      # 2. Install host dependencies + kernel build dependencies
       - name: Install dependencies
         run: |
           sudo apt update
-          sudo apt install -y git bc bison flex libssl-dev make libc6-dev libncurses5-dev clang lld \
-                              device-tree-compiler libelf-dev zlib1g-dev wget tar
+          sudo apt install -y git bc bison flex libssl-dev make libc6-dev \
+            libncurses5-dev clang lld device-tree-compiler libelf-dev \
+            zlib1g-dev wget tar gcc-aarch64-linux-gnu
 
-      # 3. Download and setup stable Linaro ARM64 toolchain (hosted on GitHub)
-      - name: Install Linaro ARM64 toolchain
+      # No download needed — gcc-aarch64-linux-gnu is now installed via apt above.
+      # We just set CROSS_COMPILE in GITHUB_ENV so it persists across all steps.
+      - name: Set cross-compile env
         run: |
-          wget https://github.com/<your-repo>/releases/download/<tag>/gcc-linaro-12.2.1-2023.04-x86_64_aarch64-linux-gnu.tar.xz
-          tar -xf gcc-linaro-12.2.1-2023.04-x86_64_aarch64-linux-gnu.tar.xz
-          export PATH=$PWD/gcc-linaro-12.2.1-2023.04-x86_64_aarch64-linux-gnu/bin:$PATH
-          export CROSS_COMPILE=aarch64-linux-gnu-
+          echo "CROSS_COMPILE=aarch64-linux-gnu-" >> $GITHUB_ENV
 
-      # 4. Clone KernelSU repository
       - name: Clone KernelSU
         run: git clone https://github.com/tiann/KernelSU.git KernelSU
 
-      # 5. Enable KernelSU and setup defconfig
       - name: Enable KernelSU and setup defconfig
         run: |
           sed -i 's/# CONFIG_KSU is not set/CONFIG_KSU=y/' arch/arm64/configs/defconfig
-          make O=out defconfig CROSS_COMPILE=aarch64-linux-gnu-
+          make O=out defconfig CROSS_COMPILE=${{ env.CROSS_COMPILE }}
 
-      # 6. Build the kernel
       - name: Build kernel
-        run: make -C . O=out -j$(nproc) CROSS_COMPILE=aarch64-linux-gnu-
+        run: make -C . O=out -j$(nproc) CROSS_COMPILE=${{ env.CROSS_COMPILE }}
 
-      # 7. Upload compiled kernel artifact
       - name: Upload kernel artifact
         uses: actions/upload-artifact@v4
         with:
