@@ -19,7 +19,37 @@ steps:
     run: sed -i 's/# CONFIG_KSU is not set/CONFIG_KSU=y/' arch/arm64/configs/defconfig
 
   - name: Set up defconfig
-    run: make $defconfig
+    run: make $env:
+  ARCH: arm64
+  SUBARCH: arm64
+  DEFCONFIG: defconfig
+
+steps:
+  - name: Checkout kernel source
+    uses: actions/checkout@v4
+
+  - name: Install dependencies
+    run: |
+      sudo apt update
+      sudo apt install -y git bc bison flex libssl-dev make libc6-dev libncurses5-dev clang lld
+
+  - name: Clone KernelSU
+    run: git clone https://github.com/tiann/KernelSU.git KernelSU
+
+  - name: Enable KernelSU
+    run: sed -i 's/# CONFIG_KSU is not set/CONFIG_KSU=y/' arch/arm64/configs/defconfig
+
+  - name: Set up defconfig
+    run: make $DEFCONFIG
+
+  - name: Build kernel
+    run: make -j$(nproc)
+
+  - name: Upload kernel artifact
+    uses: actions/upload-artifact@v4
+    with:
+      name: Image.gz
+      path: arch/arm64/boot/Image.gz
 
   - name: Build kernel
     run: make -j$(nproc)
