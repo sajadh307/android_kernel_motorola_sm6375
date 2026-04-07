@@ -18,11 +18,12 @@ jobs:
       - name: Checkout kernel source
         uses: actions/checkout@v4
 
-      - name: Install dependencies
+      - name: Install build dependencies
         run: |
           sudo apt update
           sudo apt install -y git bc bison flex libssl-dev make libc6-dev \
-            libncurses5-dev clang lld device-tree-compiler libelf-dev zlib1g-dev
+            libncurses5-dev clang lld llvm device-tree-compiler libelf-dev zlib1g-dev \
+            llvm-ar llvm-nm llvm-objcopy llvm-objdump llvm-strip
 
       - name: Clone KernelSU
         run: git clone https://github.com/tiann/KernelSU.git KernelSU
@@ -34,11 +35,7 @@ jobs:
       - name: Enable KernelSU and setup defconfig
         run: |
           sed -i 's/# CONFIG_KSU is not set/CONFIG_KSU=y/' arch/arm64/configs/defconfig
-          make O=out defconfig \
-            ARCH=arm64 \
-            CC=clang \
-            LLVM=1 \
-            CROSS_COMPILE=
+          make O=out defconfig ARCH=arm64 CC=clang LLVM=1 CROSS_COMPILE=
 
       - name: Build kernel with Clang
         run: |
