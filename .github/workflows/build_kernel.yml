@@ -25,12 +25,12 @@ jobs:
           sudo apt update
           sudo apt install -y git bc bison flex libssl-dev make libc6-dev libncurses5-dev clang lld wget tar
 
-      # 3. Download and setup Linaro ARM64 toolchain
+      # 3. Download and setup Linaro ARM64 toolchain (fixed URL)
       - name: Install ARM64 toolchain
         run: |
-          wget https://releases.linaro.org/components/toolchain/binaries/latest-12/aarch64-linux-gnu/gcc-linaro-12.2.1-2023.04-x86_64_aarch64-linux-gnu.tar.xz
-          tar -xf gcc-linaro-12.2.1-2023.04-x86_64_aarch64-linux-gnu.tar.xz
-          export PATH=$PWD/gcc-linaro-12.2.1-2023.04-x86_64_aarch64-linux-gnu/bin:$PATH
+          wget https://releases.linaro.org/components/toolchain/binaries/latest-12/aarch64-linux-gnu/gcc-linaro-12.2.1-2023.05-x86_64_aarch64-linux-gnu.tar.xz
+          tar -xf gcc-linaro-12.2.1-2023.05-x86_64_aarch64-linux-gnu.tar.xz
+          export PATH=$PWD/gcc-linaro-12.2.1-2023.05-x86_64_aarch64-linux-gnu/bin:$PATH
           export CROSS_COMPILE=aarch64-linux-gnu-
 
       # 4. Clone KernelSU
