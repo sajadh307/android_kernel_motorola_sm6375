@@ -15,27 +15,33 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1. Checkout kernel source
       - name: Checkout kernel source
         uses: actions/checkout@v4
 
+      # 2. Install dependencies + ARM64 toolchain
       - name: Install dependencies
         run: |
           sudo apt update
-          sudo apt install -y git bc bison flex libssl-dev make libc6-dev libncurses5-dev clang lld
+          sudo apt install -y git bc bison flex libssl-dev make libc6-dev libncurses5-dev clang lld gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
 
+      # 3. Clone KernelSU
       - name: Clone KernelSU
-        run: git clone https://github.com/tiann/KernelSU.git KernelSU
+        run: |
+          git clone https://github.com/tiann/KernelSU.git KernelSU
 
+      # 4. Enable KernelSU and setup defconfig
       - name: Enable KernelSU and setup defconfig
         run: |
-          # Enable KernelSU in defconfig
           sed -i 's/# CONFIG_KSU is not set/CONFIG_KSU=y/' arch/arm64/configs/defconfig
-          # Prepare kernel config
-          make O=out defconfig
+          make O=out defconfig CROSS_COMPILE=aarch64-linux-gnu-
 
+      # 5. Build kernel
       - name: Build kernel
-        run: make -C . O=out -j$(nproc)
+        run: |
+          make -C . O=out -j$(nproc) CROSS_COMPILE=aarch64-linux-gnu-
 
+      # 6. Upload compiled kernel
       - name: Upload kernel artifact
         uses: actions/upload-artifact@v4
         with:
